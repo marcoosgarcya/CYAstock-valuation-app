@@ -18,6 +18,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 import json
 import traceback
+import requests 
 
 # ─────────────────────────────────────────────
 # CONFIG & THEME
@@ -169,6 +170,13 @@ LEVEL_ICONS = {
 # ─────────────────────────────────────────────
 # DATA LOADER (yfinance — datos reales de API)
 # ─────────────────────────────────────────────
+def get_price_fallback(ticker):
+    try:
+        url = f"https://financialmodelingprep.com/api/v3/quote/{ticker}?apikey=demo"
+        data = requests.get(url).json()
+        return data[0]["price"]
+    except:
+        return None
 @st.cache_data(ttl=900, show_spinner=False)
 def load_financial_data(ticker: str):
     """
@@ -227,11 +235,21 @@ def load_financial_data(ticker: str):
             logs.append(("warn", "Info básica limitada — intentando cargar estados financieros directamente..."))
 
         # ── Precio y datos básicos ──
-        price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
+        if price is None:
+    logs.append(("warn", "Precio no disponible en yfinance, usando API externa..."))
+    price = get_price_fallback(ticker)
+
+if price is None:
+    logs.append(("error", "No se pudo obtener precio ni con fallback"))
+    return None, logs, warnings, estimated_fields
+       
         market_cap = info.get("marketCap", 0)
         enterprise_value = info.get("enterpriseValue", 0)
         beta = info.get("beta")
         shares_outstanding = info.get("sharesOutstanding", 0)
+if shares_outstanding == 0 and market_cap and price:
+    shares_outstanding = market_cap / price
+    logs.append(("warn", "Shares outstanding estimado"))
         currency = info.get("financialCurrency", "USD")
         sector = info.get("sector", "N/A")
         industry = info.get("industry", "N/A")
