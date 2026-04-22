@@ -234,24 +234,24 @@ def load_financial_data(ticker: str):
             # Tenemos precio del historial pero no info completa
             logs.append(("warn", "Info básica limitada — intentando cargar estados financieros directamente..."))
 
-        # ── Precio y datos básicos ──
-        if price is None:
+       # ── Precio y datos básicos ──
+if price is None:
     logs.append(("warn", "Precio no disponible en yfinance, usando API externa..."))
     price = get_price_fallback(ticker)
+
 if price is None:
     logs.append(("error", "No se pudo obtener precio ni con fallback"))
     price = 1
 
-       
-        market_cap = info.get("marketCap", 0)
-        enterprise_value = info.get("enterpriseValue", 0)
-        beta = info.get("beta")
+market_cap = info.get("marketCap", 0)
+enterprise_value = info.get("enterpriseValue", 0)
+beta = info.get("beta")
 
-    shares_outstanding = info.get("sharesOutstanding", 0)
+shares_outstanding = info.get("sharesOutstanding", 0)
 
 if shares_outstanding == 0 and market_cap and price:
     shares_outstanding = market_cap / price
-    logs.append(("warn", "Shares outstanding estimado"))
+    logs.append(("warn", "Shares outstanding estimado")) 
 
         currency = info.get("financialCurrency", "USD")
         sector = info.get("sector", "N/A")
